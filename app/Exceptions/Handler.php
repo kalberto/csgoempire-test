@@ -1,7 +1,7 @@
 <?php
 
 // /////////////////////////////////////////////////////////////////////////////
-// PLEASE DO NOT RENAME OR REMOVE ANY OF THE CODE BELOW. 
+// PLEASE DO NOT RENAME OR REMOVE ANY OF THE CODE BELOW.
 // YOU CAN ADD YOUR CODE TO THIS FILE TO EXTEND THE FEATURES TO USE THEM IN YOUR WORK.
 // /////////////////////////////////////////////////////////////////////////////
 
@@ -9,6 +9,7 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -40,6 +41,14 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
+        $this->renderable(function (ValidationException $exception, $request) {
+            if (!$request->wantsJson()) {
+                return null;
+            }
+
+            throw CustomValidationException::withMessages($exception->validator->getMessageBag()->getMessages());
+        });
+
         $this->renderable(function (Exception $e, $request) {
             //
         });

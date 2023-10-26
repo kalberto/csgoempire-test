@@ -1,13 +1,14 @@
 <?php
 
 // /////////////////////////////////////////////////////////////////////////////
-// PLEASE DO NOT RENAME OR REMOVE ANY OF THE CODE BELOW. 
+// PLEASE DO NOT RENAME OR REMOVE ANY OF THE CODE BELOW.
 // YOU CAN ADD YOUR CODE TO THIS FILE TO EXTEND THE FEATURES TO USE THEM IN YOUR WORK.
 // /////////////////////////////////////////////////////////////////////////////
 
 namespace App\Http;
 
 use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\EnsureJsonResponse;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 \App\Http\Middleware\_::_();
 
@@ -50,6 +51,7 @@ class Kernel extends HttpKernel
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            EnsureJsonResponse::class,
         ],
     ];
 
