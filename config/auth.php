@@ -108,4 +108,5 @@ return [
 
     'password_timeout' => 10800,
 
+    'api_token' => env('APP_API_TOKEN', 'SkFabTZibXE1aE14ckpQUUxHc2dnQ2RzdlFRTTM2NFE2cGI4d3RQNjZmdEFITmdBQkE='),
 ];

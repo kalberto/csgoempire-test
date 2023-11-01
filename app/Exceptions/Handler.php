@@ -42,7 +42,7 @@ class Handler extends ExceptionHandler
     public function register()
     {
         $this->renderable(function (ValidationException $exception, $request) {
-            if (!$request->wantsJson()) {
+            if (! $request->wantsJson()) {
                 return null;
             }
 

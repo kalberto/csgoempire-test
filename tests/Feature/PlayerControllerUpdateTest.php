@@ -9,11 +9,11 @@ namespace Tests\Feature;
 
 class PlayerControllerUpdateTest extends PlayerControllerBaseTest
 {
-    public function test_can_update()
+    public function test_can_update(): void
     {
         $this->createSinglePlayer();
 
-        $created = $this->get(self::REQ_URI. '1');
+        $created = $this->get(self::REQ_URI.'1');
 
         $this->assertEquals([
             'id' => 1,
@@ -36,21 +36,23 @@ class PlayerControllerUpdateTest extends PlayerControllerBaseTest
         ], $created->json());
 
         $data = [
-            "name" => "test",
-            "position" => "defender",
-            "playerSkills" => [
+            'name' => 'test',
+            'position' => 'defender',
+            'playerSkills' => [
                 0 => [
-                    "skill" => "attack",
-                    "value" => 60
+                    'skill' => 'attack',
+                    'value' => 60,
                 ],
                 1 => [
-                    "skill" => "speed",
-                    "value" => 80
-                ]
-            ]
+                    'skill' => 'speed',
+                    'value' => 80,
+                ],
+            ],
         ];
 
-        $res = $this->putJson(self::REQ_URI . '1', $data);
+        $res = $this->putJson(self::REQ_URI.'1', $data);
+
+        $res->assertStatus(200);
 
         $this->assertEquals([
             'id' => 1,
@@ -73,27 +75,81 @@ class PlayerControllerUpdateTest extends PlayerControllerBaseTest
         ], $res->json());
     }
 
-    public function test_invalid_id()
+    public function test_create_player_invalid_position(): void
     {
         $data = [
-            "name" => "test",
-            "position" => "defender",
-            "playerSkills" => [
+            'name' => 'test',
+            'position' => 'no_exist',
+            'playerSkills' => [
                 0 => [
-                    "skill" => "attack",
-                    "value" => 60
+                    'skill' => 'attack',
+                    'value' => 60,
                 ],
                 1 => [
-                    "skill" => "speed",
-                    "value" => 80
-                ]
-            ]
+                    'skill' => 'speed',
+                    'value' => 80,
+                ],
+            ],
         ];
 
-        $res = $this->putJson(self::REQ_URI . '56', $data);
+        $res = $this->putJson(self::REQ_URI.'1', $data);
+
+        $res->assertStatus(422);
 
         $this->assertEquals([
-            'message' => 'Invalid value for id: 56',
+            'message' => 'Invalid value for position: no_exist',
+        ], $res->json());
+    }
+
+    public function test_create_player_invalid_skill(): void
+    {
+        $data = [
+            'name' => 'test',
+            'position' => 'midfielder',
+            'playerSkills' => [
+                0 => [
+                    'skill' => 'no_exist',
+                    'value' => 60,
+                ],
+                1 => [
+                    'skill' => 'speed',
+                    'value' => 80,
+                ],
+            ],
+        ];
+
+        $res = $this->putJson(self::REQ_URI.'1', $data);
+
+        $res->assertStatus(422);
+
+        $this->assertEquals([
+            'message' => 'Invalid value for skill: no_exist',
+        ], $res->json());
+    }
+
+    public function test_invalid_id(): void
+    {
+        $data = [
+            'name' => 'test',
+            'position' => 'defender',
+            'playerSkills' => [
+                0 => [
+                    'skill' => 'attack',
+                    'value' => 60,
+                ],
+                1 => [
+                    'skill' => 'speed',
+                    'value' => 80,
+                ],
+            ],
+        ];
+
+        $res = $this->putJson(self::REQ_URI.'56', $data);
+
+        $res->assertStatus(404);
+
+        $this->assertEquals([
+            'message' => 'Player not found: 56',
         ], $res->json());
     }
 }

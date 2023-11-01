@@ -3,65 +3,49 @@
 namespace App\Repositories;
 
 use App\Enums\PlayerPosition;
+use App\Enums\PlayerSkill;
 use App\Interfaces\PlayerRepositoryInterface;
 use App\Models\Player;
-use App\Models\PlayerSkill;
 use Illuminate\Database\Eloquent\Collection;
 
 class PlayerRepository implements PlayerRepositoryInterface
 {
-
-    public function getAllPlayers()
+    public function getAllPlayers(): Collection
     {
         return Player::all();
     }
 
-    public function getPlayerById(int $playerId): Player
+    public function getPlayerById(int $playerId): ?Player
     {
         return Player::find($playerId);
     }
 
     public function createPlayer(array $data): Player
     {
-        $player = Player::create($data);
-
-        $this->createPlayerSkills($player->id, $data['playerSkills']);
-
-        return $player;
-    }
-
-    public function updatePlayer(int $playerId, array $data): Player
-    {
-        $player = $this->getPlayerById($playerId);
-        $player->update($data);
-
-        foreach ($player->skills as $key => $skill) {
-            if (isset($data['playerSkills'][$key])) {
-                $skill->update($data['playerSkills'][$key]);
-                unset($data['playerSkills'][$key]);
-            } else {
-                $skill->delete();
-            }
-        }
-
-        $this->createPlayerSkills($player->id, $data['playerSkills']);
-
-        return $player->refresh();
+        return Player::create($data);
     }
 
     public function deletePlayer(int $playerId): bool
     {
         $player = $this->getPlayerById($playerId);
+
         if (isset($player)) {
-            $skillsIds = $player->skills->pluck('id')->toArray();
-            PlayerSkill::query()->whereIn('id', $skillsIds)->delete();
             return $player->delete();
         }
 
         return false;
     }
 
-    public function getPlayersIdsByPositionAndSkill(PlayerPosition $position, \App\Enums\PlayerSkill $skill, int $limit, array $usedPlayersIds): Collection
+    /**
+     * Get a lists of players ids that match the desired position and skill
+     *
+     * @param PlayerPosition $position
+     * @param PlayerSkill $skill
+     * @param int $limit
+     * @param array $usedPlayersIds
+     * @return Collection
+     */
+    public function getPlayersIdsByPositionAndSkill(PlayerPosition $position, PlayerSkill $skill, int $limit, array $usedPlayersIds): Collection
     {
         return Player::query()
             ->select('players.id')
@@ -75,7 +59,16 @@ class PlayerRepository implements PlayerRepositoryInterface
             ->get();
     }
 
-    public function getPlayersIdsByPositionExcludingSkill(PlayerPosition $position, \App\Enums\PlayerSkill $skill, int $limit, array $usedPlayersIds): Collection
+    /**
+     * Get a lists of players ids that match the desired position and don't have the specific skill
+     *
+     * @param PlayerPosition $position
+     * @param PlayerSkill $skill
+     * @param int $limit
+     * @param array $usedPlayersIds
+     * @return Collection
+     */
+    public function getPlayersIdsByPositionExcludingSkill(PlayerPosition $position, PlayerSkill $skill, int $limit, array $usedPlayersIds): Collection
     {
         return Player::query()
             ->select('players.id')
@@ -87,12 +80,5 @@ class PlayerRepository implements PlayerRepositoryInterface
             ->groupBy('players.id')
             ->limit($limit)
             ->get();
-    }
-
-    protected function createPlayerSkills(int $playerId, array $playerSkills): void
-    {
-        foreach ($playerSkills as $playerSkill) {
-            PlayerSkill::create(array_merge($playerSkill, ['player_id' => $playerId]));
-        }
     }
 }

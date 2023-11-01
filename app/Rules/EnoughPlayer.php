@@ -7,7 +7,6 @@ use Illuminate\Contracts\Validation\Rule;
 
 class EnoughPlayer implements Rule
 {
-
     public function passes($attribute, $value): bool
     {
         $playerCount = Player::query()->where('position', $attribute)
@@ -18,6 +17,6 @@ class EnoughPlayer implements Rule
 
     public function message(): string
     {
-        return 'Insufficient number of players for position :attribute: :input';
+        return 'Insufficient number of players for position: :attribute';
     }
 }

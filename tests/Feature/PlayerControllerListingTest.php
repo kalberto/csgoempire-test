@@ -7,11 +7,9 @@
 
 namespace Tests\Feature;
 
-use App\Repositories\PlayerRepository;
-
 class PlayerControllerListingTest extends PlayerControllerBaseTest
 {
-    public function test_sample()
+    public function test_sample(): void
     {
         $this->createSinglePlayer();
 
@@ -39,7 +37,8 @@ class PlayerControllerListingTest extends PlayerControllerBaseTest
             ],
         ], $res->json());
 
+        $res->assertStatus(200);
+
         $this->assertNotNull($res);
     }
-
 }

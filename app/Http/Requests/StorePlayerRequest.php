@@ -18,4 +18,11 @@ class StorePlayerRequest extends BaseRequest
             'playerSkills.*.value' => ['required', 'integer', 'min:1'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'playerSkills.*.skill.'.Enum::class => 'Invalid value for skill: :input',
+        ];
+    }
 }

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('player_skills', function (Blueprint $table) {
             $table->id();
-            $table->string('skill', 20);
+            $table->string('skill', 20)->index();
             $table->tinyInteger('value')->default(0);
             $table->foreignId('player_id')
                 ->constrained('players')

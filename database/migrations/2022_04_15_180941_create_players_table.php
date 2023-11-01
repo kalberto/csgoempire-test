@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('position', 20);
             $table->timestamps();
+
+            $table->index(['id', 'position']);
         });
     }
 

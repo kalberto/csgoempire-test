@@ -11,7 +11,6 @@ use Illuminate\Validation\Rules\Enum;
 
 class TeamProcessRequest extends BaseRequest
 {
-
     public function rules(): array
     {
         return [
@@ -24,28 +23,30 @@ class TeamProcessRequest extends BaseRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            '*.unique.distinct' => 'Duplicated requirement: :input',
+            '*.position.'.Enum::class => 'Invalid value for position: :input',
+            '*.mainSkill.'.Enum::class => 'Invalid value for skill: :input',
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         $requirements = TeamHelper::getValidPlayerRequirements($this->all());
 
         $requirements = array_map(function ($item) {
             return array_merge($item, [
-                'unique' => $item['position'] . '_' . $item['mainSkill'],
+                'unique' => $item['position'].'_'.$item['mainSkill'],
             ]);
         }, $requirements);
 
         $numberOfPlayersByPosition = collect($requirements)->groupBy('position')
-            ->mapWithKeys(function (Collection $items,  string $position) {
+            ->mapWithKeys(function (Collection $items, string $position) {
                 return [$position => $items->sum('numberOfPlayers')];
             })->toArray();
 
         $this->replace(array_merge($requirements, $numberOfPlayersByPosition));
-    }
-
-    public function messages(): array
-    {
-        return [
-            '*.unique.distinct' => 'Duplicated requirement: :input',
-        ];
     }
 }

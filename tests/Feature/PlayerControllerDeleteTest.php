@@ -13,71 +13,42 @@ use Illuminate\Support\Str;
 class PlayerControllerDeleteTest extends PlayerControllerBaseTest
 {
 
-    protected string $token = 'SkFabTZibXE1aE14ckpQUUxHc2dnQ2RzdlFRTTM2NFE2cGI4d3RQNjZmdEFITmdBQkE';
-
-    protected bool $userCreated = false;
-
-    public function __construct(?string $name = null, array $data = [], $dataName = '')
+    public function test_unauthenticated(): void
     {
-        parent::__construct($name, $data, $dataName);
+        $res = $this->delete(self::REQ_URI.'1', headers: [
+            'Accept' => 'application/json',
+        ]);
+
+        $res->assertUnauthorized();
     }
 
-    public function test_unauthenticated()
+    public function test_invalid_id(): void
     {
-        $res = $this->delete(self::REQ_URI . '1', headers: [
-            'Accept' => 'application/json'
+        $res = $this->delete(self::REQ_URI.'1', headers: [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer '.config('auth.api_token'),
         ]);
 
         $this->assertEquals([
-            'message' => 'Unauthenticated.'
+            'message' => 'Player not found: 1',
         ], $res->json());
     }
 
-    public function test_invalid_id()
+    public function test_delete_user(): void
     {
-        $this->createUser();
-
-        $res = $this->delete(self::REQ_URI . '1', headers: [
-            'Accept' => 'application/json',
-            'Authorization' => 'Bearer ' . $this->token,
-            ]);
-
-        $this->assertEquals([
-            'message' => 'The selected id is invalid.'
-        ], $res->json());
-    }
-
-    public function test_delete_user()
-    {
-        $this->createUser();
+        $this->createSinglePlayer();
         $this->createSinglePlayer();
 
-        $res = $this->delete(self::REQ_URI . '1', headers: [
+        $this->assertDatabaseCount('players', 2);
+        $this->assertDatabaseCount('player_skills', 4);
+
+        $res = $this->delete(self::REQ_URI.'1', headers: [
             'Accept' => 'application/json',
-            'Authorization' => 'Bearer ' . $this->token,
+            'Authorization' => 'Bearer '.config('auth.api_token'),
         ]);
 
-        $res->assertStatus(204);
-    }
+        $this->assertDatabaseCount('player_skills', 2);
 
-    protected function createUser(): void
-    {
-        if($this->userCreated) {
-            return;
-        }
-
-        $this->userCreated = true;
-
-        $user = new User();
-        $user->name = 'Admin';
-        $user->email = 'email@email.com';
-        $user->password = Str::random(10);
-        $user->save();
-
-        $user->tokens()->create([
-            'name' => 'api_token',
-            'token' => hash('sha256', $this->token),
-            'abilities' => ['*'],
-        ]);
+        $res->assertStatus(200);
     }
 }

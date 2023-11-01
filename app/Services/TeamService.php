@@ -10,7 +10,6 @@ use Illuminate\Support\Collection;
 
 class TeamService
 {
-
     private PlayerRepository $playerRepository;
 
     public function __construct(PlayerRepository $playerRepository)
@@ -20,11 +19,19 @@ class TeamService
 
     public function process(array $requirements): Collection
     {
-        $playersId =  $this->getPlayersByRequirements($requirements);
+        $playersId = $this->getPlayersByRequirements($requirements);
 
         return Player::query()->whereIn('id', $playersId)->get();
     }
 
+    /**
+     * Get a list of players ids that match the specific requirements
+     *
+     * @param array $requirements
+     * @param array $usedPlayersIds
+     * @param bool $bySkill
+     * @return array
+     */
     public function getPlayersByRequirements(array $requirements, array $usedPlayersIds = [], bool $bySkill = true): array
     {
         $missingRequirements = [];

@@ -7,50 +7,104 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DeletePlayerRequest;
 use App\Http\Requests\StorePlayerRequest;
 use App\Http\Requests\UpdatePlayerRequest;
 use App\Http\Resources\PlayerResource;
-use App\Repositories\PlayerRepository;
+use App\Services\PlayerService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PlayerController extends Controller
 {
+    private PlayerService $playerService;
 
-    private PlayerRepository $playerRepository;
-
-    public function __construct(PlayerRepository $playerRepository)
+    /**
+     * PlayerController constructor.
+     *
+     * @param PlayerService $playerService
+     *
+     */
+    public function __construct(PlayerService $playerService)
     {
-        $this->playerRepository = $playerRepository;
+        $this->playerService = $playerService;
     }
 
+    /**
+     * Get all players.
+     *
+     * @return AnonymousResourceCollection
+     */
     public function index(): AnonymousResourceCollection
     {
-        return PlayerResource::collection($this->playerRepository->getAllPlayers());
+        return PlayerResource::collection($this->playerService->getAllPlayers());
     }
 
-    public function show(int $playerId): PlayerResource
+    /**
+     * Get a single player.
+     *
+     * @param int $playerId
+     * @return PlayerResource|JsonResponse
+     */
+    public function show(int $playerId): PlayerResource|JsonResponse
     {
-        return new PlayerResource($this->playerRepository->getPlayerById($playerId));
+        $player = $this->playerService->getPlayerById($playerId);
+
+        if ($player) {
+            return new PlayerResource($player);
+        }
+
+        return response()->json([
+            'message' => 'Player not found: '.$playerId,
+        ], 404);
     }
 
+    /**
+     * Create a player.
+     *
+     * @param StorePlayerRequest $request
+     * @return PlayerResource
+     */
     public function store(StorePlayerRequest $request): PlayerResource
     {
-        return new PlayerResource($this->playerRepository->createPlayer($request->validated()));
+        return new PlayerResource($this->playerService->createPlayer($request->validated()));
     }
 
-    public function update(UpdatePlayerRequest $request, int $playerId): PlayerResource
+    /**
+     * Update a player.
+     *
+     * @param UpdatePlayerRequest $request
+     * @param int $playerId
+     * @return PlayerResource|JsonResponse
+     */
+    public function update(UpdatePlayerRequest $request, int $playerId): PlayerResource|JsonResponse
     {
-        return new PlayerResource($this->playerRepository->updatePlayer($playerId, $request->validated()));
-    }
+        $player = $this->playerService->updatePlayer($playerId, $request->validated());
 
-    public function destroy(DeletePlayerRequest $request, int $playerId)
-    {
-        if ($this->playerRepository->deletePlayer($playerId) ) {
-            return response()->json([], 204);
+        if ($player) {
+            return new PlayerResource($player);
         }
+
         return response()->json([
-            'Couldn\'t delete id: ' . $playerId
-        ], 500);
+            'message' => 'Player not found: '.$playerId,
+        ], 404);
+    }
+
+    /**
+     * Delete a player.
+     *
+     * @param int $playerId
+     * @return JsonResponse
+     */
+    public function destroy(int $playerId): JsonResponse
+    {
+        if ($this->playerService->deletePlayer($playerId)) {
+            return response()->json([
+                'message' => 'Player deleted',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Player not found: '.$playerId,
+        ], 404);
     }
 }
